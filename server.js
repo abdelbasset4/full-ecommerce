@@ -1,15 +1,17 @@
+const path = require('path');
 const express = require('express')
 const dotenv = require('dotenv')
 const morgan = require('morgan')
+const swaggerUi = require('swagger-ui-express');
 
 dotenv.config({ path: "config.env" })
 const apiError = require('./utils/apiError')
 const globalError = require('./Middleware/errorMiddleware')
+
+const swaggerDocument = require('./swagger.json');
 // Routes
-const categoryRoute = require('./routes/category.route')
-const productRoute = require('./routes/product.route')
-const brandRoute = require('./routes/brand.route')
-const subCategoryRoute = require('./routes/subCategory.route')
+const mountRoutes = require('./routes')
+
 //connection db 
 const dbConnection = require('./config/dbConnection')
 
@@ -18,16 +20,16 @@ dbConnection();
 const app = express();
 
 app.use(express.json());
+app.use(express.static(path.join(__dirname,'uploads')))
+
 if (process.env.NODE_ENV ==='development') {
     app.use(morgan('dev'))
 }
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-// Middelware
-app.use('/api/v1/categories',categoryRoute)
-app.use('/api/v1/products',productRoute)
-app.use('/api/v1/brands',brandRoute)
-app.use('/api/v1/subcategories',subCategoryRoute)
 
+// Middleware
+mountRoutes(app)
 
 app.all('*', (req, res, next) => {
     // eslint-disable-next-line new-cap

@@ -1,6 +1,6 @@
 const slugify = require('slugify')
 const { check, body } = require('express-validator');
-const validatorMiddleware = require('../Middleware/validatorMiddleware')
+const validatorMiddleware = require('../../Middleware/validatorMiddleware')
 // const Category = require('../models/category.model')
 exports.getCategoryValidator = [check('id')
     .isMongoId().withMessage('incorrect id format'), validatorMiddleware]
@@ -16,7 +16,7 @@ exports.createCategoryValidator = [check('name')
     validatorMiddleware]
 
 exports.updateCategoryValidator =  [check('id')
-    .isMongoId().withMessage('incorrect id format'), body('name').custom((val,{req}) => {
+    .isMongoId().withMessage('incorrect id format'), body('name').optional().custom((val,{req}) => {
         req.body.slug = slugify(val)
         return true
     })
@@ -24,11 +24,3 @@ exports.updateCategoryValidator =  [check('id')
 
 exports.deleteCategoryValidator = [check('id')
     .isMongoId().withMessage('incorrect id format'), validatorMiddleware]
-
-
-    // .custom(value => Category.find({name:value}).then(user => {
-    //     if (user) {
-    //       // eslint-disable-next-line prefer-promise-reject-errors
-    //       return Promise.reject('name  already in use');
-    //     }
-    //   }))

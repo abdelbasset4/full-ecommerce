@@ -1,3 +1,4 @@
+
 class ApiFeatures{
     constructor(mongooseQuery, queryString) {
         this.mongooseQuery = mongooseQuery;
@@ -9,6 +10,7 @@ class ApiFeatures{
         const excludeQuery = ["page", "limit", "fileds", "sort"]
         excludeQuery.forEach((elem) => delete queryStringObj[elem]);
         let strQuery = JSON.stringify(queryStringObj);
+        // apply filtretion use [get,gt,lte,lt]
         strQuery = strQuery.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`)
         this.mongooseQuery = this.mongooseQuery.find(JSON.parse(strQuery));
         return this

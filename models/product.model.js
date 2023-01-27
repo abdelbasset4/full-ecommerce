@@ -67,14 +67,44 @@ const productSchema = mongoose.Schema({
         type: Number,
         default: 0,
     }
-}, { timestamps: true });
+}, { timestamps: true ,
+ // to enable virtual populate
+ toJSON: { virtuals: true },
+ toObject: { virtuals: true }});
 
+productSchema.virtual('reviews', {
+    ref: 'Review',
+    foreignField: 'product',
+    localField: '_id',
+  });
 productSchema.pre(/^find/, function(next) {
     this.populate({
         path: 'category',
         select: 'name -_id'
     });
     next();
+})
+const setImageUrl = (doc)=>{
+    if(doc.imageCover){
+        const imageURL = `${process.env.BASE_URL}/products/${doc.imageCover}`
+        doc.imageCover = imageURL;
+    }
+    if(doc.images){
+        const imageList = [];
+        doc.images.forEach((image)=>{
+            const imageURL = `${process.env.BASE_URL}/products/${image}`
+            imageList.push(imageURL)
+        })
+        doc.images = imageList
+    }
+}
+// getAll,getOne,update
+productSchema.post('init',(doc)=>{
+    setImageUrl(doc);
+})
+// create
+productSchema.post('save',(doc)=>{
+    setImageUrl(doc);
 })
 const Product = mongoose.model('Product', productSchema);
 module.exports = Product

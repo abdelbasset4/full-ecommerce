@@ -1,14 +1,15 @@
 const express = require('express')
 
 const route = express.Router({mergeParams: true})
-const {createSubCategoryValidator,getSubCategoryValidator,updateSubCategoryValidator,deleteSubCategoryValidator} = require('../utils/subCategoryValidator')
-const { createSubCategory, getSubCategories, getSpecificSubCategory, updateSubCategory, deleteSubCategory, setCategoryToBody, createFilterObj } = require('../controllers/subCategory.controller')
+const {createSubCategoryValidator,getSubCategoryValidator,updateSubCategoryValidator,deleteSubCategoryValidator} = require('../utils/validator/subCategoryValidator')
+const { createSubCategory, getSubCategories, getSpecificSubCategory, updateSubCategory, deleteSubCategory, setCategoryToBody, createFilterObj,updoadSubCategoryFile,proccesImage } = require('../controllers/subCategory.controller')
+const {protect,allowedTo} = require('../controllers/auth.controller')
 
 route.route('/')
-    .post(setCategoryToBody,createSubCategoryValidator, createSubCategory)
+    .post(protect,allowedTo('admin','manager'),updoadSubCategoryFile,proccesImage,setCategoryToBody,createSubCategoryValidator, createSubCategory)
     .get(createFilterObj,getSubCategories)
 route.route("/:id")
     .get(getSubCategoryValidator, getSpecificSubCategory)    
-    .put(updateSubCategoryValidator, updateSubCategory)
-    .delete(deleteSubCategoryValidator, deleteSubCategory)
+    .put(protect,allowedTo('admin','manager'),updoadSubCategoryFile,proccesImage,updateSubCategoryValidator, updateSubCategory)
+    .delete(protect,allowedTo('admin'),deleteSubCategoryValidator, deleteSubCategory)
 module.exports = route

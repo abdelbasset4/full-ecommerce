@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const uniqueValidator = require('mongoose-unique-validator');
 
 const categorySchema = mongoose.Schema({
     name: {
@@ -15,7 +14,22 @@ const categorySchema = mongoose.Schema({
     },
     image:String
 }, { timestamps: true })
-categorySchema.plugin(uniqueValidator, { type: 'mongoose-unique-validator' ,message:'Category must be uniaue'});
+
+const setImageUrl = (doc)=>{
+    if(doc.image){
+        const imageURL = `${process.env.BASE_URL}/categories/${doc.image}`
+        doc.image = imageURL;
+    }
+
+}
+// getAll,getOne,update
+categorySchema.post('init',(doc)=>{
+    setImageUrl(doc);
+})
+// create
+categorySchema.post('save',(doc)=>{
+    setImageUrl(doc);
+})
 
 const Category = mongoose.model('category', categorySchema)
 module.exports = Category

@@ -1,15 +1,15 @@
 const express = require('express')
 
 const route = express.Router()
-const { getBrandValidator,createBrandValidator,updateBrandValidator,deleteBrandValidator} = require('../utils/brandValidator')
-const { createBrand, getBrands, getSpecificBrand, updateBrand, deleteBrand } = require('../controllers/brand.controller')
-// const subCategoriesRoute = require('./subCategory.route')
+const { getBrandValidator,createBrandValidator,updateBrandValidator,deleteBrandValidator} = require('../utils/validator/brandValidator')
+const { createBrand, getBrands, getSpecificBrand, updateBrand, deleteBrand,updoadBrandFile,proccesImage  } = require('../controllers/brand.controller')
+const {protect,allowedTo} = require('../controllers/auth.controller')
 
-// route.use('/:categoryId/subcategories',subCategoriesRoute)
-route.route('/').get(getBrands)
-    .post(createBrandValidator,createBrand)
+route.route('/')
+    .get(getBrands)
+    .post(protect,allowedTo('admin','manager'),updoadBrandFile,proccesImage ,createBrandValidator,createBrand)
 route.route('/:id')
     .get(getBrandValidator, getSpecificBrand)
-    .put(updateBrandValidator, updateBrand)
-    .delete(deleteBrandValidator,deleteBrand)
+    .put(protect,allowedTo('admin','manager'),updoadBrandFile,proccesImage ,updateBrandValidator, updateBrand)
+    .delete(protect,allowedTo('admin'),deleteBrandValidator,deleteBrand)
 module.exports = route;

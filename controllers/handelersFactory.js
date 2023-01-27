@@ -6,18 +6,20 @@ exports.deleteOne = Model =>  asyncHandler(async (req, res,next) => {
     const {id} = req.params;
     const document = await Model.findByIdAndDelete(id )
     if (!document) {
-        // eslint-disable-next-line new-cap
         return next(new apiError('there is not document found',404))
     }
+    // trigger remove event when document is removed
+    document.remove();
     res.status(204).send();
 })
 
 exports.updateOne = Model =>  asyncHandler(async (req, res,next) => {
     const document = await Model.findByIdAndUpdate(req.params.id, req.body, { new: true })
     if (!document) {
-        // eslint-disable-next-line new-cap
         return next(new apiError('there is not document found',404))
     }
+    // trigger save event when document is updated
+    document.save();
     res.status(200).json({data:document})
 })
 
@@ -26,11 +28,16 @@ exports.createOne = Model => asyncHandler(async (req, res) => {
     res.status(201).json({ data: document });
 })
 
-exports.getOne = Model =>asyncHandler(async (req, res,next) => {
+exports.getOne = (Model,populateOpt) =>asyncHandler(async (req, res,next) => {
     const {id} = req.params;
-    const document = await Model.findById(id)
+    // build query string
+    let query =  Model.findById(id)
+    if(populateOpt){
+        query = query.populate(populateOpt)
+    }
+    // excute query string
+    const document = await query;
     if (!document) {
-        // eslint-disable-next-line new-cap
         return next(new apiError('there is not document found',404))
     }
     res.status(200).json({data:document})
