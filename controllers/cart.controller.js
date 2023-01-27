@@ -88,3 +88,30 @@ exports.clearCart = asyncHandler(async (req,res,next)=>{
   await Cart.findOneAndDelete({user:req.user._id})
   res.status(204).send();
 });
+
+exports.updateQuantity = asyncHandler(async (req,res,next)=>{
+  const {quantity} = req.body;
+  const cart = await Cart.findOne({user:req.user._id})
+  if(!cart){
+    return next(new apiError(`there is no cart for this user id ${req.user._id}`,404))
+  }
+  const itemIndex = cart.cartItems.findIndex(item=>item._id.toString() ===req.params.itemId);
+  if(itemIndex>-1){
+    const cartItem = cart.cartItems[itemIndex];
+    cartItem.quantity = quantity;
+    cart.cartItems[itemIndex] = cartItem;
+  }else{
+    return next(new apiError(`there is no item for this id ${req.params._id}`,404))
+
+  }
+   // Calculate total cart price
+   calcTotalCartPrice(cart);
+   await cart.save();
+ 
+   res.status(200).json({
+     status: 'success',
+     message: 'Product quantity  updated successfully',
+     numOfCartItems: cart.cartItems.length,
+     data: cart,
+   });
+});

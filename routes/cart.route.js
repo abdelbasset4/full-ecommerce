@@ -2,11 +2,11 @@ const express = require('express')
 
 const route = express.Router()
 
-const {addProductToCart,getLoggedUserCart,removeCartItem,clearCart} = require('../controllers/cart.controller')
+const {addProductToCart,getLoggedUserCart,removeCartItem,clearCart,updateQuantity} = require('../controllers/cart.controller')
 const {protect,allowedTo} = require('../controllers/auth.controller')
 
 route.use(protect,allowedTo('user'))
 route.route('/').post(addProductToCart).get(getLoggedUserCart).delete(clearCart)
-route.route('/:itemId').delete(removeCartItem)
+route.route('/:itemId').delete(removeCartItem).put(updateQuantity)
 
 module.exports = route;
