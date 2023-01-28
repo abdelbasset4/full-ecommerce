@@ -24,7 +24,6 @@ exports.createCashOrder = asyncHandler(async (req,res,next)=>{
         user:req.user._id,
         cartItems:cart.cartItems,
         shippingAdress:req.body.shippingAdress,
-        paidAt:Date.now(),
         totalOrderPrice
     })
     // 4- after create order increment sold product and decrement quantity product
@@ -51,3 +50,25 @@ exports.filterOrderForLoggedUser = asyncHandler(async (req,res,next)=>{
 exports.getAllOrders = factory.getAll(Order)
 
 exports.getSpecificOrder = factory.getOne(Order)
+
+exports.updateOrderPaid = asyncHandler(async (req,res,next)=>{
+    const order = await Order.findById(req.params.id);
+    if(!order){
+        return next(new apiError('Order not found',404)) 
+    }
+    order.isPaid = true;
+    order.paidAt = Date.now()
+    const updateOrder = await order.save();
+    res.status(200).json({status:'succes',data:updateOrder})
+})
+
+exports.updateOrderDeliver = asyncHandler(async (req,res,next)=>{
+    const order = await Order.findById(req.params.id);
+    if(!order){
+        return next(new apiError('Order not found',404)) 
+    }
+    order.isDelivered = true;
+    order.deliveredAt = Date.now()
+    const updateOrder = await order.save();
+    res.status(200).json({status:'succes',data:updateOrder})
+})
