@@ -49,7 +49,7 @@ const userSchema = mongoose.Schema({
         details:String,
         phone:String,
         city:String,
-        codePostal:String
+        postalCode:String
 
     }]
 },{timestamps:true})
