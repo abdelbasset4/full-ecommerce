@@ -1,3 +1,4 @@
+const stripe = require('stripe')(process.env.STRIPE_API_KEY)
 const asyncHandler = require('express-async-handler')
 
 const apiError = require('../utils/apiError')
@@ -71,4 +72,39 @@ exports.updateOrderDeliver = asyncHandler(async (req,res,next)=>{
     order.deliveredAt = Date.now()
     const updateOrder = await order.save();
     res.status(200).json({status:'succes',data:updateOrder})
+})
+
+exports.createCheckoutSession = asyncHandler(async (req,res,next)=>{
+    const taxPrice = 0;
+    const shippingPrice = 0;
+    // 1- get cart based on cartId
+    const cart = await Cart.findById(req.params.cartId);
+    if(!cart){
+        return next(new apiError('Cart not found',404))
+    }
+    // 2- get cart price and check if coupon apply to order
+    const orderPrice = cart.priceAfterDiscount ? cart.priceAfterDiscount:cart.totalCartPrice;
+    const totalOrderPrice = orderPrice+taxPrice+shippingPrice;
+
+    const session = await stripe.checkout.sessions.create({
+        line_items:[
+           {
+            price_data: {
+              currency: 'usd',
+              unit_amount: totalOrderPrice*100,
+              product_data: {
+                name:  req.user.name,
+              },
+            },
+            quantity: 1,
+           }
+        ],
+        mode:"payment",
+        success_url: `${req.protocol}://${req.get("host")}/orders`,
+        cancel_url: `${req.protocol}://${req.get("host")}/orders`,
+        customer_email:req.user.email,
+        client_reference_id:req.params.cartId,
+        metadata:req.body.shippingAdress
+    })
+    res.status(200).json({status:'succes',session})
 })
