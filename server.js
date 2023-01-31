@@ -1,6 +1,8 @@
 const path = require('path');
 const express = require('express')
 const dotenv = require('dotenv')
+const cors = require('cors')
+const compression = require('compression')
 const morgan = require('morgan')
 const swaggerUi = require('swagger-ui-express');
 
@@ -21,6 +23,11 @@ const app = express();
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname,'uploads')))
+// allowed other domain acces api
+app.use(cors())
+app.options('*', cors())
+// compress response
+app.options(compression())
 
 if (process.env.NODE_ENV ==='development') {
     app.use(morgan('dev'))
