@@ -7,6 +7,7 @@ const factory = require('./handelersFactory');
 const Cart = require('../models/cart.model')
 const Product = require('../models/product.model')
 const Order = require('../models/order.model')
+const User = require('../models/user.model')
 
 exports.createCashOrder = asyncHandler(async (req,res,next)=>{
     const taxPrice = 0;
@@ -109,6 +110,40 @@ exports.createCheckoutSession = asyncHandler(async (req,res,next)=>{
     res.status(200).json({status:'succes',session})
 })
 
+const createCardOrder =async (session)=>{
+    const cartId = session.client_reference_id;
+    const shippingAdress = session.metadata;
+    const orderPrice = session.amount_total /100;
+
+    const cart = Cart.findById(cartId)
+    const user = User.findById({email:session.customer_email})
+
+     // 3- create order based on shipping methode "Cash"
+     const order = await Order.create({
+        user:user._id,
+        cartItems:cart.cartItems,
+        shippingAdress,
+        totalOrderPrice:orderPrice,
+        isPaid:true,
+        paidAt:Date.now(),
+        paymentMethodType: 'card',
+    })
+
+    // 4- after create order increment sold product and decrement quantity product
+    if(order){
+        const bulkOption = cart.cartItems.map((item) =>({
+            updateOne:{
+                filter:{_id:item.product},
+                update:{$inc:{quantity:-item.quantity,sold:+item.quantity}}
+            }
+        }))
+        await Product.bulkWrite(bulkOption,{});
+
+        // 5- clear cart 
+        await Cart.findByIdAndDelete(cartId)
+    }
+}
+
 exports.webhookCheckout = asyncHandler(async (req,res,next)=>{
     const sig = req.headers['stripe-signature'];
     let event;
@@ -124,7 +159,7 @@ exports.webhookCheckout = asyncHandler(async (req,res,next)=>{
     }
     if (event.type === 'checkout.session.completed') {
         //  Create order
-        // createCardOrder(event.data.object);
-        console.log("Create Order here .........");
-      }
+        createCardOrder(event.data.object);
+    }
+    res.status(200).json({ received: true });
 });

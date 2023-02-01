@@ -49,7 +49,7 @@ app.get("/", (req, res) => {
     res.send("full ecommerce on Vercel");
 });
 app.post(
-    '/webhook-checkout',
+    '/webhook',
     express.raw({ type: 'application/json' }),
     webhookCheckout
   );
