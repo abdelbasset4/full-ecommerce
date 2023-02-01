@@ -29,6 +29,13 @@ app.options('*', cors())
 // compress response
 app.options(compression())
 
+// Checkout webhook
+app.post(
+    '/webhook-checkout',
+    express.raw({ type: 'application/json' }),
+    webhookCheckout
+);
+
 if (process.env.NODE_ENV ==='development') {
     app.use(morgan('dev'))
 }
@@ -48,11 +55,7 @@ app.use(globalError)
 app.get("/", (req, res) => {
     res.send("full ecommerce on Vercel");
 });
-app.post(
-    '/webhook-checkout',
-    express.raw({ type: 'application/json' }),
-    webhookCheckout
-  );
+
   
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
