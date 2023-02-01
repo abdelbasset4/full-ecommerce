@@ -13,7 +13,7 @@ const globalError = require('./Middleware/errorMiddleware')
 const swaggerDocument = require('./swagger.json');
 // Routes
 const mountRoutes = require('./routes')
-
+const {webhookCheckout} = require('./controllers/order.controller')
 //connection db 
 const dbConnection = require('./config/dbConnection')
 
@@ -48,6 +48,12 @@ app.use(globalError)
 app.get("/", (req, res) => {
     res.send("full ecommerce on Vercel");
 });
+app.post(
+    '/webhook-checkout',
+    express.raw({ type: 'application/json' }),
+    webhookCheckout
+  );
+  
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
     console.log(`server listen on port ${PORT}`)
