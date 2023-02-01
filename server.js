@@ -45,6 +45,9 @@ app.all('*', (req, res, next) => {
 //Error handiling middelware
 app.use(globalError)
 
+app.get("/", (req, res) => {
+    res.send("full ecommerce on Vercel");
+});
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
     console.log(`server listen on port ${PORT}`)
@@ -58,3 +61,4 @@ process.on("unhandledRejection", (err) => {
 })
 
 
+module.exports = server
