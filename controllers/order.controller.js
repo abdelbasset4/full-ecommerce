@@ -144,24 +144,40 @@ const createCardOrder =async (session)=>{
     }
 }
 
-exports.webhookCheckout = asyncHandler(async (req,res,next)=>{
-    const sig = req.headers['stripe-signature'];
+// exports.webhookCheckout = asyncHandler(async (req,res,next)=>{
+//     const sig = req.headers['stripe-signature'];
 
-  let event;
+//   let event;
 
-  try {
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
-  } catch (err) {
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-  if (event.type === 'checkout.session.completed') {
+//   try {
+//     event = stripe.webhooks.constructEvent(
+//       req.body,
+//       sig,
+//       process.env.STRIPE_WEBHOOK_SECRET
+//     );
+//   } catch (err) {
+//     return res.status(400).send(`Webhook Error: ${err.message}`);
+//   }
+//   if (event.type === 'checkout.session.completed') {
+//     //  Create order
+//     createCardOrder(event.data.object);
+//   }
+
+//   res.status(200).json({ received: true });
+// });
+exports.webhookCheckout = asyncHandler(async (req, res ) => {
+
+        const stripeSignature = req.headers['stripe-signature'];
+        if(stripeSignature == null) { throw new UnknownError('No stripe signature found!');  }
+    
+        const stripePayload = (req).rawBody || req.body;
+        const stripeSecret = `whsec_s7XR9BuBRgvZlSRcfJsma2fivY4pqG34`;
+        const event = stripe.webhooks.constructEvent(stripePayload, stripeSignature.toString(), stripeSecret);
+    
+         if (event.type === 'checkout.session.completed') {
     //  Create order
     createCardOrder(event.data.object);
   }
 
   res.status(200).json({ received: true });
-});
+      })
