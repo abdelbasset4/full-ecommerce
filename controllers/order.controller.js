@@ -166,13 +166,16 @@ const createCardOrder =async (session)=>{
 //   res.status(200).json({ received: true });
 // });
 exports.webhookCheckout = asyncHandler(async (req, res ) => {
+    const sig = request.headers['stripe-signature'];
 
-        const stripeSignature = req.headers['stripe-signature'];
-        if(stripeSignature == null) { throw new UnknownError('No stripe signature found!');  }
-    
-        const stripePayload = (req).rawBody || req.body;
-        const stripeSecret = `whsec_s7XR9BuBRgvZlSRcfJsma2fivY4pqG34`;
-        const event = stripe.webhooks.constructEvent(stripePayload, stripeSignature.toString(), stripeSecret);
+    let event;
+  
+    try {
+      event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
+    } catch (err) {
+      response.status(400).send(`Webhook Error 1: ${err.message}`);
+      return;
+    }
     
          if (event.type === 'checkout.session.completed') {
     //  Create order
@@ -180,4 +183,4 @@ exports.webhookCheckout = asyncHandler(async (req, res ) => {
   }
 
   res.status(200).json({ received: true });
-      })
+})
