@@ -29,12 +29,7 @@ app.options('*', cors())
 // compress response
 app.options(compression())
 
-// Checkout webhook
-app.post(
-    '/webhook-checkout',
-    express.raw({ type: '*/*' }),
-    webhookCheckout
-);
+
 
 if (process.env.NODE_ENV ==='development') {
     app.use(morgan('dev'))
@@ -68,6 +63,11 @@ process.on("unhandledRejection", (err) => {
         process.exit(1);
     })
 })
-
+// Checkout webhook
+app.post(
+    '/webhook-checkout',
+    express.raw({type: 'application/json'}),
+    webhookCheckout
+);
 
 module.exports = server
