@@ -5,6 +5,8 @@ const cors = require('cors')
 const compression = require('compression')
 const morgan = require('morgan')
 const swaggerUi = require('swagger-ui-express');
+const rateLimit = require('express-rate-limit')
+const hpp = require('hpp');
 
 dotenv.config({ path: "config.env" })
 const apiError = require('./utils/apiError')
@@ -21,7 +23,7 @@ dbConnection();
 
 const app = express();
 
-app.use(express.json());
+app.use(express.json({limit:"20kb"}));
 app.use(express.static(path.join(__dirname,'uploads')))
 // allowed other domain acces api
 app.use(cors())
@@ -36,7 +38,19 @@ if (process.env.NODE_ENV ==='development') {
 }
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
+ // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000, 
+	max: 100, 
+  message:
+  'Too many accounts created from this IP, please try again after 15 minutes',
+})
 
+// Apply the rate limiting middleware to all requests
+app.use(limiter)
+
+// middleware to protect against HTTP Parameter Pollution attacks
+app.use(hpp({whitelist:['price','sold','quantity','ratingsAverage','ratingsQuantity']}));
 // Middleware
 mountRoutes(app)
 
